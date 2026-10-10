@@ -39,6 +39,7 @@ class Settings:
         self.qdrant_url = _env("QDRANT_URL")
         self.qdrant_api_key = _env("QDRANT_API_KEY")
         self.qdrant_path = _env("QDRANT_PATH", str(self.data_dir / "qdrant"))
+        self.collection_prefix = _env("VACHAN_COLLECTION_PREFIX")
         self.embedder = _env("VACHAN_EMBEDDER", "fastembed")  # fastembed | hash
         self.embed_model = _env("VACHAN_EMBED_MODEL", "BAAI/bge-small-en-v1.5")
 

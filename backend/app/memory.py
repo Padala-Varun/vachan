@@ -22,8 +22,9 @@ from qdrant_client import QdrantClient, models
 from .config import settings
 from .timeutil import day_bounds, now, parse_iso
 
-TRANSCRIPTS = "transcripts"
-COMMITMENTS = "commitments"
+# An optional prefix keeps separate data sets (e.g. a demo recording) in the same cluster.
+TRANSCRIPTS = f"{settings.collection_prefix}transcripts"
+COMMITMENTS = f"{settings.collection_prefix}commitments"
 VECTOR_SIZE = 384
 
 KEYWORD_FIELDS = {
