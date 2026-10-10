@@ -1,0 +1,11 @@
+{
+  "id": "demo-pr-review",
+  "structured": {"title": "Standup with Priya"},
+  "transcript_segments": [
+    {"text": "The payments PR is finally up. Can you take a look before the release?", "speaker": "SPEAKER_01", "speakerId": 1, "is_user": false, "start": 0.0, "end": 4.0},
+    {"text": "Sure Priya. I'll review your PR on Thursday at 6 pm.", "speaker": "SPEAKER_00", "speakerId": 0, "is_user": true, "start": 4.2, "end": 7.5},
+    {"text": "Great. I'll fix the flaky tests by Wednesday so it's green for you.", "speaker": "SPEAKER_01", "speakerId": 1, "is_user": false, "start": 7.7, "end": 11.2},
+    {"text": "Also I'll book the team dinner for Thursday, everyone has been asking.", "speaker": "SPEAKER_00", "speakerId": 0, "is_user": true, "start": 11.4, "end": 15.0},
+    {"text": "Love it. See you then.", "speaker": "SPEAKER_01", "speakerId": 1, "is_user": false, "start": 15.2, "end": 16.5}
+  ]
+}

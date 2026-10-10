@@ -1,0 +1,7 @@
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+httpx==0.28.1
+qdrant-client[fastembed]==1.12.1
+apscheduler==3.10.4
+python-dotenv==1.0.1
+pytest==8.3.4

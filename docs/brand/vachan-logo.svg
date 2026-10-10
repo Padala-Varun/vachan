@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbbf24"/>
+      <stop offset="0.55" stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#ea580c"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.3" cy="0.22" r="0.8">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.28"/>
+      <stop offset="0.6" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="116" fill="url(#glow)"/>
+  <!-- व: "Vachan", a promise / one's given word -->
+  <text x="256" y="356" text-anchor="middle" font-family="Nirmala UI, Nirmala, 'Tiro Devanagari Hindi', serif"
+        font-weight="700" font-size="300" fill="#ffffff">व</text>
+  <!-- kept: a small check seal -->
+  <circle cx="396" cy="396" r="62" fill="#ffffff"/>
+  <path d="M366 398 l20 20 l40 -44" fill="none" stroke="#ea580c" stroke-width="16"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

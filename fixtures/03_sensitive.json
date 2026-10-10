@@ -1,0 +1,11 @@
+{
+  "id": "demo-arjun-loan",
+  "structured": {"title": "Call with Arjun"},
+  "transcript_segments": [
+    {"text": "Hey Arjun, thanks again for lending me the money last month.", "speaker": "SPEAKER_00", "speakerId": 0, "is_user": true, "start": 0.0, "end": 3.5},
+    {"text": "No stress, take your time.", "speaker": "SPEAKER_01", "speakerId": 1, "is_user": false, "start": 3.7, "end": 5.2},
+    {"text": "No really, I'll pay back the ₹20,000 loan by next Friday.", "speaker": "SPEAKER_00", "speakerId": 0, "is_user": true, "start": 5.4, "end": 9.0},
+    {"text": "Okay. How is your dad doing? Is the new blood pressure medicine helping?", "speaker": "SPEAKER_01", "speakerId": 1, "is_user": false, "start": 9.2, "end": 13.4},
+    {"text": "Much better, thanks. I'll call you on Sunday after his checkup.", "speaker": "SPEAKER_00", "speakerId": 0, "is_user": true, "start": 13.6, "end": 17.0}
+  ]
+}

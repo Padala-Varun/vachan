@@ -1,0 +1,14 @@
+{
+  "id": "demo-pitch-deck",
+  "structured": {"title": "Coffee with Rahul about the seed round"},
+  "transcript_segments": [
+    {"text": "So how is the fundraise going? Did the angels get back to you?", "speaker": "SPEAKER_01", "speakerId": 1, "is_user": false, "start": 0.0, "end": 4.1},
+    {"text": "Two of them did. Honestly the deck needs work before I send it wider.", "speaker": "SPEAKER_00", "speakerId": 0, "is_user": true, "start": 4.3, "end": 8.0},
+    {"text": "Send me the latest version, I can give you feedback before the partner meeting.", "speaker": "SPEAKER_01", "speakerId": 1, "is_user": false, "start": 8.2, "end": 12.5},
+    {"text": "Thanks Rahul. I'll send you the updated pitch deck by Thursday evening.", "speaker": "SPEAKER_00", "speakerId": 0, "is_user": true, "start": 12.7, "end": 16.4},
+    {"text": "Perfect. And I'll share the list of fintech investors with you tomorrow morning.", "speaker": "SPEAKER_01", "speakerId": 1, "is_user": false, "start": 16.6, "end": 21.0},
+    {"text": "That would be huge. My number changed by the way, it's 98765 43210.", "speaker": "SPEAKER_00", "speakerId": 0, "is_user": true, "start": 21.2, "end": 25.0},
+    {"text": "Okay, off the record, I think our CTO is about to quit, nobody knows yet. Back on the record.", "speaker": "SPEAKER_01", "speakerId": 1, "is_user": false, "start": 25.2, "end": 31.0},
+    {"text": "Got it. Let's catch up after the meeting.", "speaker": "SPEAKER_00", "speakerId": 0, "is_user": true, "start": 31.2, "end": 33.5}
+  ]
+}
