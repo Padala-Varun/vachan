@@ -40,7 +40,10 @@ async def handle_command(uid: str, text: str, source: str = "text") -> dict:
         handler = {"recall": _recall, "mark_done": _mark_done, "forget": _forget,
                    "add": _add}.get(intent, _unknown)
         result = await handler(uid, text, route, run_id)
-        note = await notifier.notify(uid, result["answer"], kind=intent, run_id=run_id)
+        # Spoken to Omi -> answer on the phone. Asked on the dashboard -> the answer is
+        # already on screen, so don't spend one of Omi's 10 notifications per hour.
+        note = await notifier.notify(uid, result["answer"], kind=intent, run_id=run_id,
+                                     push=source == "voice")
         tracer.run_end(run_id, "ok", intent=intent)
         return {"run_id": run_id, "intent": intent, "route": route, **result,
                 "notification": note}
@@ -118,11 +121,15 @@ async def _add(uid: str, text: str, route: dict, run_id: str) -> dict:
                                             "speaker_name": route["counterparty"],
                                             "is_user": False})
     async with tracer.span(run_id, "pipeline", kind="local", input={"text": sentence}) as span:
-        summary = await process_conversation(body, uid)
+        # the command's own reply is the single notification, so the inner run stays quiet
+        summary = await process_conversation(body, uid, push=False)
         span.output = {"created": len(summary["created"]), "run_id": summary["run_id"]}
     if summary["created"] or summary["updated"]:
         c = (summary["created"] or summary["updated"])[0]
-        return {"answer": f"📝 Got it: {c['action']}.", "matches": [c]}
+        answer = f"📝 Got it: {c['action']}."
+        if summary["conflicts"]:
+            answer += f" ⚠️ Heads up: {summary['conflicts'][0].get('conflict_reason')}"
+        return {"answer": answer, "matches": [c]}
     return {"answer": "I heard you, but couldn't find a promise in that.", "matches": []}
 
 

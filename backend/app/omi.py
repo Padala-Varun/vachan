@@ -66,34 +66,57 @@ def parse_conversation(body: dict) -> dict:
 class Notifier:
     """Sends Omi push notifications; always mirrors them to the dashboard's phone feed."""
 
+    # Omi allows each app 10 phone notifications per user per hour.
+    HOURLY_LIMIT = 10
+    LIMIT_MESSAGE = "Phone limit reached (Omi allows 10 notifications an hour), so it's shown here instead."
+
     def __init__(self, transport: httpx.AsyncBaseTransport | None = None) -> None:
         self.feed: deque[dict] = deque(maxlen=200)
         self._transport = transport
         self._file = settings.data_dir / "notifications.jsonl"
+        self._sent: dict[str, deque[float]] = {}
 
     @property
     def mode(self) -> str:
         return "omi" if settings.omi_enabled else "dry-run"
 
+    def _under_limit(self, uid: str) -> bool:
+        window = self._sent.setdefault(uid, deque())
+        cutoff = now().timestamp() - 3600
+        while window and window[0] < cutoff:
+            window.popleft()
+        return len(window) < self.HOURLY_LIMIT
+
+    async def _push(self, uid: str, message: str) -> tuple[bool, str | None]:
+        if not self._under_limit(uid):
+            return False, self.LIMIT_MESSAGE
+        url = f"{settings.omi_api_base}/v2/integrations/{settings.omi_app_id}/notification"
+        try:
+            async with httpx.AsyncClient(timeout=15, transport=self._transport) as client:
+                resp = await client.post(
+                    url, params={"uid": uid, "message": message},
+                    headers={"Authorization": f"Bearer {settings.omi_app_secret}",
+                             "Content-Type": "application/json"})
+        except httpx.HTTPError as exc:
+            return False, str(exc)
+        self._sent[uid].append(now().timestamp())
+        if resp.status_code == 429:
+            return False, self.LIMIT_MESSAGE
+        if resp.status_code >= 300:
+            return False, f"HTTP {resp.status_code}: {resp.text[:200]}"
+        return True, None
+
     async def notify(self, uid: str, message: str, *, kind: str = "info",
-                     priority: str = "normal", run_id: str | None = None) -> dict:
+                     priority: str = "normal", run_id: str | None = None,
+                     push: bool = True) -> dict:
+        """Record a nudge on the dashboard and, if `push`, send it to the phone via Omi."""
         delivered, error = False, None
-        if settings.omi_enabled:
-            url = f"{settings.omi_api_base}/v2/integrations/{settings.omi_app_id}/notification"
-            try:
-                async with httpx.AsyncClient(timeout=15, transport=self._transport) as client:
-                    resp = await client.post(
-                        url, params={"uid": uid, "message": message},
-                        headers={"Authorization": f"Bearer {settings.omi_app_secret}",
-                                 "Content-Type": "application/json"})
-                delivered = resp.status_code < 300
-                if not delivered:
-                    error = f"HTTP {resp.status_code}: {resp.text[:200]}"
-            except httpx.HTTPError as exc:
-                error = str(exc)
+        channel = self.mode if push else "dashboard"
+        if push and settings.omi_enabled:
+            delivered, error = await self._push(uid, message)
         note = {"id": uuid.uuid4().hex[:10], "at": now().isoformat(), "uid": uid,
                 "message": message, "kind": kind, "priority": priority,
-                "channel": self.mode, "delivered": delivered, "error": error, "run_id": run_id}
+                "channel": channel, "delivered": delivered, "error": error, "run_id": run_id}
         self.feed.appendleft(note)
         tracer.emit({"type": "notification", **note})
         try:

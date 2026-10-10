@@ -46,8 +46,8 @@ export default function NotificationsDrawer({ open, onClose }) {
                   </div>
                   <p>{stripEmoji(n.message)}</p>
                   {n.channel === 'omi' && (
-                    <span className={`small ${n.delivered ? 'text-success' : 'text-danger'}`}>
-                      {n.delivered ? 'Delivered to phone' : `Not delivered: ${n.error}`}
+                    <span className={`small ${n.delivered ? 'text-success' : n.error?.startsWith('Phone limit') ? 'text-warning' : 'text-danger'}`}>
+                      {n.delivered ? 'Delivered to phone' : n.error?.startsWith('Phone limit') ? n.error : `Not delivered: ${n.error}`}
                     </span>
                   )}
                 </div>

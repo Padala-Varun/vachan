@@ -47,7 +47,8 @@ def _brief(c: dict) -> dict:
     return {k: c.get(k) for k in ("id", "owner", "counterparty", "action", "due_at", "status")}
 
 
-async def nudge(uid: str, events: list[dict], *, run_id: str, private: bool = False) -> list[dict]:
+async def nudge(uid: str, events: list[dict], *, run_id: str, private: bool = False,
+                push: bool = True) -> list[dict]:
     """Ask the Nudger to phrase events, then push them. Private events never reach an LLM."""
     if not events:
         return []
@@ -67,20 +68,25 @@ async def nudge(uid: str, events: list[dict], *, run_id: str, private: bool = Fa
                 lambda evs: local_nudger({"now": payload["now"], "events": add_when(evs)}), now())
             result = {**result, "notifications": notes}
             span.output = {"corrections": corrections} if corrections else "all days and times confirmed"
-    sent = []
+    # One conversation = one notification: Omi allows 10 per hour, and one buzz is kinder.
+    notes = [n for n in result.get("notifications", []) if n.get("message")]
+    if not notes:
+        return []
+    notes.sort(key=lambda n: n.get("priority") != "high")          # clash warnings first
+    kinds = [e["type"] for e in events]
+    kind = "conflict" if "conflict" in kinds else kinds[0]
+    priority = "high" if any(n.get("priority") == "high" for n in notes) else notes[0].get("priority", "normal")
+    message = "\n".join(n["message"] for n in notes)
     async with tracer.span(run_id, "omi_notify", kind="omi",
-                           input={"count": len(result.get("notifications", []))}) as span:
-        notes = result.get("notifications", [])
-        for i, note in enumerate(notes):
-            kind = events[i]["type"] if len(notes) == len(events) else events[0]["type"]
-            sent.append(await notifier.notify(uid, note["message"], kind=kind,
-                                              priority=note.get("priority", "normal"),
-                                              run_id=run_id))
-        span.output, span.meta["backend"] = [n["message"] for n in sent], notifier.mode
-    return sent
+                           input={"notifications": len(notes), "push": push}) as span:
+        sent = await notifier.notify(uid, message, kind=kind, priority=priority, run_id=run_id, push=push)
+        span.output = sent["error"] or message
+        span.meta["backend"] = sent["channel"]
+    return [sent]
 
 
-async def process_conversation(body: dict, uid: str) -> dict:
+async def process_conversation(body: dict, uid: str, push: bool = True) -> dict:
+    """Run the DAG for one conversation. `push=False` keeps nudges on the dashboard only."""
     store = get_store()
     known_uids.add(uid)
     conv = parse_conversation(body)
@@ -231,10 +237,10 @@ async def process_conversation(body: dict, uid: str) -> dict:
                   for c in summary["conflicts"] if c.get("visibility") != "private"]
         if shared:
             events.append({"type": "captured", "commitments": shared})
-        await nudge(uid, events, run_id=run_id)
+        await nudge(uid, events, run_id=run_id, push=push)
         if private:
             await nudge(uid, [{"type": "captured", "commitments": private}], run_id=run_id,
-                        private=True)
+                        private=True, push=push)
         for c in captured:
             schedule_reminders(uid, c)
 

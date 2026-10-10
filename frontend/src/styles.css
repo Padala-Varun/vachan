@@ -689,3 +689,6 @@ kbd { font: 11px 'JetBrains Mono', ui-monospace, monospace; padding: 1px 6px; bo
   .askbox-chips button { font-size: 12.5px; }
 }
 .mini-list .mini-text { flex: 1; }
+
+/* combined notifications keep one line per nudge */
+.notif p, .toast-text span { white-space: pre-line; }
