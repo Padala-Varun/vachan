@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Mic } from 'lucide-react'
 import { useVachan, VachanProvider } from './store.jsx'
 import { PAGES, Sidebar, Topbar } from './components/Shell.jsx'
 import AskPalette from './components/AskPalette.jsx'
@@ -31,6 +32,10 @@ function Layout() {
   const [theme, setTheme] = useState(readTheme)
   const [menuOpen, setMenuOpen] = useState(false)
   const [askOpen, setAskOpen] = useState(false)
+  const [askInitial, setAskInitial] = useState({})
+  const [guideVisible, setGuideVisible] = useState(() => {
+    try { return localStorage.getItem('vachan-guide-hidden') !== '1' } catch { return true }
+  })
   const [bellOpen, setBellOpen] = useState(false)
   const [promise, setPromise] = useState(null)
   const [selectedRun, setSelectedRun] = useState(null)
@@ -53,6 +58,7 @@ function Layout() {
     const onKey = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault()
+        setAskInitial({ nonce: Date.now() })
         setAskOpen((v) => !v)
       }
     }
@@ -71,7 +77,22 @@ function Layout() {
     navigate('activity')
   }, [navigate])
 
-  const shared = { onNavigate: navigate, onOpenPromise: setPromise, onOpenRun: openRun }
+  // open the ask popup: empty, pre-asked with `text`, or already listening on the mic
+  const openAsk = useCallback(({ text, listen } = {}) => {
+    setAskInitial({ text, listen, nonce: Date.now() })
+    setAskOpen(true)
+  }, [])
+
+  const showGuide = (visible) => {
+    setGuideVisible(visible)
+    try { localStorage.setItem('vachan-guide-hidden', visible ? '0' : '1') } catch { /* ignore */ }
+    if (visible) navigate('overview')
+  }
+
+  const shared = {
+    onNavigate: navigate, onOpenPromise: setPromise, onOpenRun: openRun,
+    onAsk: (text) => openAsk({ text }), guideVisible, onHideGuide: () => showGuide(false),
+  }
 
   return (
     <div className="layout">
@@ -79,7 +100,8 @@ function Layout() {
       <div className="main">
         <Topbar
           page={page}
-          onAsk={() => setAskOpen(true)}
+          onAsk={() => openAsk()}
+          onGuide={() => showGuide(true)}
           onBell={() => { setBellOpen(true); markNotificationsSeen() }}
           onMenu={() => setMenuOpen(true)}
           theme={theme}
@@ -95,7 +117,12 @@ function Layout() {
         </main>
       </div>
 
-      <AskPalette open={askOpen} onClose={() => setAskOpen(false)} onOpenRun={openRun} />
+      <button className="talk-fab" onClick={() => openAsk({ listen: true })} aria-label="Talk to Vachan">
+        <Mic size={20} />
+        <span>Talk to Vachan</span>
+      </button>
+
+      <AskPalette open={askOpen} onClose={() => setAskOpen(false)} onOpenRun={openRun} initial={askInitial} />
       <NotificationsDrawer open={bellOpen} onClose={() => setBellOpen(false)} />
       <PromiseDrawer promise={promise} onClose={() => setPromise(null)} />
       <Toasts toasts={toasts} onDismiss={dismissToast} />

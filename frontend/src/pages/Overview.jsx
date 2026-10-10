@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { AlertTriangle, ArrowRight, CalendarDays, CheckCircle2, Clock, Handshake, Inbox, Mic, Play, Plug, Sparkles, Workflow } from 'lucide-react'
-import { api, fmtDay, hasConflict, isMine, isOpen, timeAgo } from '../api.js'
+import AskBox from '../components/AskBox.jsx'
+import DemoGuide from '../components/DemoGuide.jsx'
+import { AlertTriangle, ArrowRight, CalendarDays, CheckCircle2, Clock, Handshake, Inbox, Mic, Plug, Sparkles, Workflow } from 'lucide-react'
+import { fmtDay, hasConflict, isMine, isOpen, timeAgo } from '../api.js'
 import { useVachan } from '../store.jsx'
 import PromiseRow from '../components/PromiseRow.jsx'
 import { Badge, Button, Card, EmptyState, Spinner } from '../components/ui.jsx'
@@ -40,20 +41,6 @@ function ScoreRing({ kept, total }) {
 }
 
 export function Onboarding({ onNavigate, compact = false }) {
-  const { toast } = useVachan()
-  const [busy, setBusy] = useState(false)
-  async function loadDemo() {
-    setBusy(true)
-    try {
-      const res = await api.simulate()
-      toast(`Playing ${res.conversations.length} demo conversations. Watch the agents work.`, 'info', 'Demo started')
-      onNavigate('activity')
-    } catch (e) {
-      toast(e.message, 'danger', 'Could not start demo')
-    } finally {
-      setBusy(false)
-    }
-  }
   return (
     <section className={`welcome ${compact ? 'compact' : ''}`}>
       <div className="welcome-text">
@@ -61,11 +48,10 @@ export function Onboarding({ onNavigate, compact = false }) {
         <h2>Never forget a promise again.</h2>
         <p>
           Vachan listens to your conversations through Omi, catches every commitment you make or receive, warns you
-          about clashes and reminds you before deadlines.
+          about clashes and reminds you before deadlines. Start with the guide below. Every step is one click.
         </p>
         <div className="welcome-actions">
-          <Button variant="primary" icon={Play} onClick={loadDemo} disabled={busy}>{busy ? 'Starting…' : 'Try it with demo conversations'}</Button>
-          <Button icon={Plug} onClick={() => onNavigate('connections')}>Connect Omi</Button>
+          <Button icon={Plug} onClick={() => onNavigate('connections')}>Connect your Omi</Button>
         </div>
       </div>
       <ol className="steps">
@@ -77,7 +63,19 @@ export function Onboarding({ onNavigate, compact = false }) {
   )
 }
 
-export default function Overview({ onNavigate, onOpenPromise, onOpenRun }) {
+function TalkCard({ onOpenRun }) {
+  return (
+    <section className="talk-card">
+      <div className="talk-head">
+        <h2>Talk to Vachan</h2>
+        <p>Click the mic and speak, type, or pick an example. It works the same as saying “Hey Vachan…” to your Omi.</p>
+      </div>
+      <AskBox variant="inline" onOpenRun={onOpenRun} />
+    </section>
+  )
+}
+
+export default function Overview({ onNavigate, onOpenPromise, onOpenRun, onAsk, guideVisible, onHideGuide }) {
   const { commitments, runs, loaded } = useVachan()
   const mine = commitments.filter(isMine)
   const openMine = mine.filter(isOpen)
@@ -94,10 +92,20 @@ export default function Overview({ onNavigate, onOpenPromise, onOpenRun }) {
   }, {})
 
   if (!loaded) return <div className="center-pad"><Spinner size={24} /></div>
-  if (commitments.length === 0) return <Onboarding onNavigate={onNavigate} />
+  if (commitments.length === 0) {
+    return (
+      <div className="stack">
+        <Onboarding onNavigate={onNavigate} />
+        <DemoGuide onNavigate={onNavigate} onAsk={onAsk} />
+        <TalkCard onOpenRun={onOpenRun} />
+      </div>
+    )
+  }
 
   return (
     <div className="stack">
+      {guideVisible && <DemoGuide onNavigate={onNavigate} onAsk={onAsk} onHide={onHideGuide} />}
+      <TalkCard onOpenRun={onOpenRun} />
       <div className="hello">
         <div>
           <h2>{greeting()}.</h2>

@@ -1,4 +1,4 @@
-import { Bell, Brain, Handshake, LayoutDashboard, Menu, Moon, Plug, Search, ShieldCheck, Sun, Workflow } from 'lucide-react'
+import { Bell, Brain, Compass, Handshake, LayoutDashboard, Menu, Mic, Moon, Plug, ShieldCheck, Sun, Workflow } from 'lucide-react'
 import { useVachan } from '../store.jsx'
 import { hasConflict, isMine, isOpen } from '../api.js'
 import { IconButton } from './ui.jsx'
@@ -85,7 +85,7 @@ export function Sidebar({ page, onNavigate, open, onClose }) {
   )
 }
 
-export function Topbar({ page, onAsk, onBell, onMenu, theme, onTheme }) {
+export function Topbar({ page, onAsk, onGuide, onBell, onMenu, theme, onTheme }) {
   const { unread } = useVachan()
   const meta = PAGES.find((p) => p.id === page) || PAGES[0]
   return (
@@ -95,9 +95,13 @@ export function Topbar({ page, onAsk, onBell, onMenu, theme, onTheme }) {
         <h1>{meta.title}</h1>
         <p>{meta.desc}</p>
       </div>
+      <button className="guide-trigger" onClick={onGuide} title="Show the step-by-step demo guide">
+        <Compass size={16} />
+        <span>Demo guide</span>
+      </button>
       <button className="ask-trigger" onClick={onAsk}>
-        <Search size={16} />
-        <span>Ask Vachan…</span>
+        <Mic size={16} className="ask-mic" />
+        <span>Ask or talk to Vachan…</span>
         <kbd>Ctrl K</kbd>
       </button>
       <IconButton icon={Bell} label="Notifications" onClick={onBell} badge={unread} />

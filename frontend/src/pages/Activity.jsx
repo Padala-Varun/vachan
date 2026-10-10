@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
-import { AlarmClock, AudioLines, Bot, ChevronDown, Cpu, Database, Moon, Smartphone, Workflow } from 'lucide-react'
-import { fmtDateTime, timeAgo } from '../api.js'
+import { AlarmClock, AudioLines, Bot, ChevronDown, Cpu, Database, Moon, Play, Smartphone, Workflow } from 'lucide-react'
+import { api, fmtDateTime, timeAgo } from '../api.js'
 import { useVachan } from '../store.jsx'
 import { STEP_INFO, runSteps } from '../runs.js'
-import { Badge, Card, EmptyState, JsonBlock, Spinner } from '../components/ui.jsx'
-import { Onboarding } from './Overview.jsx'
+import { Badge, Button, Card, EmptyState, JsonBlock, Spinner } from '../components/ui.jsx'
 
 export const RUN_KIND = {
   conversation: { label: 'Conversation', icon: AudioLines, tone: 'brand' },
@@ -100,12 +99,15 @@ export default function Activity({ selectedRun, onSelectRun, onNavigate }) {
 
   if (loaded && runs.length === 0) {
     return (
-      <div className="stack">
-        <EmptyState icon={Workflow} title="No agent runs yet">
-          When Omi sends a conversation, every step the agents take appears here live.
+      <Card>
+        <EmptyState
+          icon={Workflow}
+          title="No agent runs yet"
+          action={<Button variant="primary" icon={Play} onClick={() => api.simulate(['01_pitch_deck.json'])}>Play a demo conversation</Button>}
+        >
+          When Omi sends a conversation, every step the six agents take appears here, live.
         </EmptyState>
-        <Onboarding onNavigate={onNavigate} compact />
-      </div>
+      </Card>
     )
   }
   if (!run) return null

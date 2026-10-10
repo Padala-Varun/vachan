@@ -24,6 +24,7 @@ from .trace import tracer
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FRONTEND_DIST = Path(os.getenv("VACHAN_FRONTEND_DIST", str(REPO_ROOT / "frontend" / "dist")))
 FIXTURES_DIR = settings.fixtures_dir
+STREAM_MAX_SECONDS = 120
 
 wake_listener = WakeListener(handle_command)
 
@@ -191,10 +192,16 @@ async def traces(limit: int = 400):
 async def stream(request: Request):
     queue = tracer.subscribe()
 
+    # Streams end after STREAM_MAX_SECONDS; the browser reconnects automatically and reloads
+    # history. Without this, open dashboards keep the container busy forever and a redeploy
+    # (single container) can't take over until every tab is closed.
+    deadline = asyncio.get_running_loop().time() + STREAM_MAX_SECONDS
+
     async def events():
         try:
-            yield "retry: 2000\n\n"
-            while not await request.is_disconnected():
+            yield "retry: 1500\n\n"
+            while (not await request.is_disconnected()
+                   and asyncio.get_running_loop().time() < deadline):
                 try:
                     event = await asyncio.wait_for(queue.get(), timeout=15)
                     yield f"data: {json.dumps(event, default=str, ensure_ascii=False)}\n\n"
